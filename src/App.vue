@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Container, Draggable, type DropResult } from 'vue3-smooth-dnd'
 import { fieldCatalog, useFormBuilderStore, type CatalogField } from '@/stores/formBuilder'
+import FormPreviewView from '@/views/FormPreviewView.vue'
 
 const store = useFormBuilderStore()
+const route = useRoute()
+const router = useRouter()
 const activeTab = ref<'fields' | 'properties'>('fields')
 const saved = ref(false)
 const selectedField = computed(() => store.selectedField)
@@ -50,14 +54,20 @@ function updateOptions(event: Event) {
 }
 
 function saveModel() {
-  localStorage.setItem('form-studio-model', JSON.stringify(store.fields))
+  store.saveModel()
   saved.value = true
   window.setTimeout(() => (saved.value = false), 1800)
+}
+
+function createFormPage() {
+  store.saveModel()
+  router.push({ name: 'form-preview' })
 }
 </script>
 
 <template>
-  <div class="app-shell">
+  <FormPreviewView v-if="route.name === 'form-preview'" />
+  <div v-else class="app-shell">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">
@@ -78,13 +88,17 @@ function saveModel() {
       </div>
 
       <div class="topbar-actions">
-        <button class="icon-button" aria-label="预览" title="预览">
+        <button class="icon-button" aria-label="预览" title="预览" @click="createFormPage">
           <svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg>
         </button>
         <button class="secondary-button" @click="store.resetModel">重置</button>
         <button class="primary-button" @click="saveModel">
           <svg viewBox="0 0 24 24"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3M8 21v-8h8v8"/></svg>
           {{ saved ? '已保存' : '保存模型' }}
+        </button>
+        <button class="create-form-button" @click="createFormPage">
+          创建表单
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </button>
       </div>
     </header>
@@ -113,7 +127,7 @@ function saveModel() {
             class="form-dropzone"
             group-name="form-fields"
             drag-handle-selector=".drag-handle"
-            non-drag-area-selector="input, textarea, select, button, .field-action"
+            non-drag-area-selector="input, textarea, select, .field-action"
             :get-child-payload="canvasPayload"
             :drop-placeholder="{ className: 'drop-placeholder', animationDuration: 180, showOnTop: true }"
             @drop="onCanvasDrop"
