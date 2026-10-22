@@ -23,6 +23,15 @@ export interface FieldValidation {
   patternMessage: string
 }
 
+export type VisibilityOperator = 'equals' | 'not_equals' | 'contains' | 'empty' | 'not_empty' | 'checked' | 'unchecked'
+
+export interface FieldVisibility {
+  enabled: boolean
+  sourceFieldId: string
+  operator: VisibilityOperator
+  value: string
+}
+
 export interface FormField {
   id: string
   type: FieldType
@@ -35,10 +44,11 @@ export interface FormField {
   disabled: boolean
   options: string[]
   validation: FieldValidation
+  visibility: FieldVisibility
 }
 
 export interface SavedFormModel {
-  version: 1
+  version: 2
   revision: number
   status: 'draft' | 'published'
   id: string
@@ -72,16 +82,19 @@ const initialFields: Omit<FormField, 'id'>[] = [
     type: 'text', typeLabel: '单行文本', label: '姓名', name: 'fullName', placeholder: '请输入您的姓名',
     helpText: '', required: true, disabled: false, options: [],
     validation: { format: 'none', requiredMessage: '请输入姓名', minLength: 2, maxLength: 30, min: null, max: null, pattern: '', patternMessage: '' },
+    visibility: { enabled: false, sourceFieldId: '', operator: 'equals', value: '' },
   },
   {
     type: 'text', typeLabel: '单行文本', label: '电子邮箱', name: 'email', placeholder: 'name@example.com',
     helpText: '我们不会向第三方公开您的邮箱', required: true, disabled: false, options: [],
     validation: { format: 'email', requiredMessage: '请输入电子邮箱', minLength: null, maxLength: 100, min: null, max: null, pattern: '', patternMessage: '' },
+    visibility: { enabled: false, sourceFieldId: '', operator: 'equals', value: '' },
   },
   {
     type: 'select', typeLabel: '下拉选择', label: '所在地区', name: 'region', placeholder: '请选择所在地区',
     helpText: '', required: false, disabled: false, options: ['华东地区', '华南地区', '华北地区', '其他'],
     validation: { format: 'none', requiredMessage: '', minLength: null, maxLength: null, min: null, max: null, pattern: '', patternMessage: '' },
+    visibility: { enabled: false, sourceFieldId: '', operator: 'equals', value: '' },
   },
 ]
 
@@ -102,11 +115,12 @@ function makeField(definition: CatalogField): FormField {
     disabled: false,
     options: [...(definition.options ?? [])],
     validation: { format: 'none', requiredMessage: '', minLength: null, maxLength: null, min: null, max: null, pattern: '', patternMessage: '' },
+    visibility: { enabled: false, sourceFieldId: '', operator: 'equals', value: '' },
   }
 }
 
 function freshInitialFields(): FormField[] {
-  return initialFields.map((field) => ({ ...field, id: makeId(), options: [...field.options], validation: { ...field.validation } }))
+  return initialFields.map((field) => ({ ...field, id: makeId(), options: [...field.options], validation: { ...field.validation }, visibility: { ...field.visibility } }))
 }
 
 function cloneFields(fields: FormField[]) {
@@ -123,6 +137,12 @@ function cloneFields(fields: FormField[]) {
       pattern: '',
       patternMessage: '',
     } satisfies FieldValidation, field.validation ?? {}),
+    visibility: Object.assign({
+      enabled: false,
+      sourceFieldId: '',
+      operator: 'equals',
+      value: '',
+    } satisfies FieldVisibility, field.visibility ?? {}),
   }))
 }
 
@@ -137,7 +157,7 @@ function readFormModel(storageKey: string, fallbackStatus: SavedFormModel['statu
     // 兼容早期只保存字段数组的数据格式。
     if (Array.isArray(parsed)) {
       return {
-        version: 1,
+        version: 2,
         revision: 0,
         status: fallbackStatus,
         id: 'user-information-form',
@@ -152,6 +172,7 @@ function readFormModel(storageKey: string, fallbackStatus: SavedFormModel['statu
     if (!parsed || !Array.isArray(parsed.fields)) return null
     return {
       ...parsed,
+      version: 2,
       revision: parsed.revision ?? 0,
       status: parsed.status ?? fallbackStatus,
       publishedAt: parsed.publishedAt ?? null,
@@ -208,7 +229,7 @@ export const useFormBuilderStore = defineStore('formBuilder', () => {
     const index = fields.value.findIndex((field) => field.id === id)
     if (index < 0) return
     const source = fields.value[index]!
-    const copy = { ...source, id: makeId(), label: `${source.label} 副本`, name: `${source.name}_copy`, options: [...source.options], validation: { ...source.validation } }
+    const copy = { ...source, id: makeId(), label: `${source.label} 副本`, name: `${source.name}_copy`, options: [...source.options], validation: { ...source.validation }, visibility: { ...source.visibility } }
     fields.value.splice(index + 1, 0, copy)
     selectedId.value = copy.id
   }
@@ -228,7 +249,7 @@ export const useFormBuilderStore = defineStore('formBuilder', () => {
   function saveModel(): SavedFormModel {
     const publishedModel = readPublishedFormModel()
     const model: SavedFormModel = {
-      version: 1,
+      version: 2,
       revision: publishedModel?.revision ?? 0,
       status: 'draft',
       id: 'user-information-form',
@@ -247,7 +268,7 @@ export const useFormBuilderStore = defineStore('formBuilder', () => {
     const previousPublishedModel = readPublishedFormModel()
     const now = new Date().toISOString()
     const model: SavedFormModel = {
-      version: 1,
+      version: 2,
       revision: (previousPublishedModel?.revision ?? 0) + 1,
       status: 'published',
       id: 'user-information-form',

@@ -93,6 +93,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .field-label-row label { font-weight: 650; color: #344054; font-size: 13px; }
 .field-label-row em { color: #f04438; font-style: normal; }
 .type-chip { flex: none; color: var(--accent); background: var(--accent-soft); padding: 2px 7px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+.field-chips { display: flex; align-items: center; gap: 5px; }
+.condition-chip { flex: none; padding: 2px 7px; border-radius: 20px; background: #fff4e5; color: #b54708; font-size: 10px; font-weight: 600; }
 .field-body > input, .field-body > textarea, .field-body > select, .property-control input, .property-control textarea { width: 100%; border: 1px solid #d7dce3; border-radius: 7px; color: #667085; background: #fff; outline: none; }
 .field-body > input, .field-body > select { height: 41px; padding: 0 12px; }
 .field-body > textarea { padding: 10px 12px; resize: none; }
@@ -165,6 +167,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .property-control input:focus, .property-control textarea:focus, .property-control select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91, 91, 214, .1); }
 .validation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .validation-settings { padding-bottom: 6px; }
+.condition-settings { padding-bottom: 12px; }
+.condition-help { margin: 2px 0 0; padding: 9px 10px; border-radius: 7px; background: #f8f9fc; color: #667085; font-size: 10.5px; line-height: 1.6; }
 .switch-list { padding-bottom: 12px; }
 .switch-row { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 9px 0 12px; cursor: pointer; }
 .switch-row > div { display: flex; flex-direction: column; }

@@ -11,6 +11,9 @@ const router = useRouter()
 const activeTab = ref<'fields' | 'properties'>('fields')
 const saved = ref(false)
 const selectedField = computed(() => store.selectedField)
+const conditionSourceFields = computed(() => store.fields.filter((field) => field.id !== selectedField.value?.id && field.type !== 'divider'))
+const conditionSourceField = computed(() => store.fields.find((field) => field.id === selectedField.value?.visibility.sourceFieldId) ?? null)
+const conditionNeedsValue = computed(() => ['equals', 'not_equals', 'contains'].includes(selectedField.value?.visibility.operator ?? ''))
 
 const iconPaths: Record<string, string> = {
   text: '<path d="M5 5h14M12 5v14M8 19h8"/>',
@@ -69,6 +72,15 @@ function updateOptions(event: Event) {
     .split('\n')
     .map((item) => item.trim())
     .filter(Boolean)
+}
+
+function updateConditionSource(event: Event) {
+  if (!selectedField.value) return
+  const sourceId = (event.target as HTMLSelectElement).value
+  const source = store.fields.find((field) => field.id === sourceId)
+  selectedField.value.visibility.sourceFieldId = sourceId
+  selectedField.value.visibility.value = ''
+  selectedField.value.visibility.operator = source?.type === 'checkbox' ? 'checked' : 'equals'
 }
 
 function saveModel() {
@@ -168,7 +180,10 @@ function publishFormPage() {
                 <div class="field-body">
                   <div class="field-label-row">
                     <label>{{ field.label }} <em v-if="field.required">*</em></label>
-                    <span class="type-chip">{{ field.typeLabel }}</span>
+                    <span class="field-chips">
+                      <span v-if="field.visibility.enabled" class="condition-chip">条件显示</span>
+                      <span class="type-chip">{{ field.typeLabel }}</span>
+                    </span>
                   </div>
 
                   <textarea
@@ -321,6 +336,54 @@ function publishFormPage() {
                 <div><strong>禁用字段</strong><span>仅展示，不允许用户修改</span></div>
                 <input v-model="selectedField.disabled" type="checkbox" /><i></i>
               </label>
+            </div>
+
+            <div v-if="selectedField.type !== 'divider'" class="property-section condition-settings">
+              <h3>条件显隐</h3>
+              <label class="switch-row">
+                <div><strong>启用显示条件</strong><span>满足条件时才展示该字段</span></div>
+                <input v-model="selectedField.visibility.enabled" type="checkbox" /><i></i>
+              </label>
+
+              <template v-if="selectedField.visibility.enabled">
+                <label class="property-control">
+                  <span>依赖字段</span>
+                  <select :value="selectedField.visibility.sourceFieldId" @change="updateConditionSource">
+                    <option value="">请选择依赖字段</option>
+                    <option v-for="field in conditionSourceFields" :key="field.id" :value="field.id">
+                      {{ field.label }}（{{ field.name }}）
+                    </option>
+                  </select>
+                </label>
+
+                <label v-if="conditionSourceField" class="property-control">
+                  <span>判断方式</span>
+                  <select v-model="selectedField.visibility.operator">
+                    <template v-if="conditionSourceField.type === 'checkbox'">
+                      <option value="checked">已勾选</option>
+                      <option value="unchecked">未勾选</option>
+                    </template>
+                    <template v-else>
+                      <option value="equals">等于</option>
+                      <option value="not_equals">不等于</option>
+                      <option value="contains">包含</option>
+                      <option value="empty">为空</option>
+                      <option value="not_empty">不为空</option>
+                    </template>
+                  </select>
+                </label>
+
+                <label v-if="conditionSourceField && conditionNeedsValue" class="property-control">
+                  <span>比较值</span>
+                  <select v-if="conditionSourceField.type === 'select' || conditionSourceField.type === 'radio'" v-model="selectedField.visibility.value">
+                    <option value="">请选择比较值</option>
+                    <option v-for="option in conditionSourceField.options" :key="option" :value="option">{{ option }}</option>
+                  </select>
+                  <input v-else v-model="selectedField.visibility.value" type="text" placeholder="请输入用于判断的值" />
+                </label>
+
+                <p v-if="!conditionSourceField" class="condition-help">选择一个字段作为条件来源；配置不完整时，当前字段默认保持显示。</p>
+              </template>
             </div>
 
             <div v-if="selectedField.type !== 'divider'" class="property-section validation-settings">

@@ -4,6 +4,7 @@ import { Form as VeeForm } from 'vee-validate'
 import { useRoute, useRouter } from 'vue-router'
 import { readPublishedFormModel, readSavedFormModel } from '@/stores/formBuilder'
 import RuntimeFieldRenderer from '@/components/form-runtime/RuntimeFieldRenderer.vue'
+import { isFieldVisible, type FormValues } from '@/conditions/fieldVisibility'
 
 const router = useRouter()
 const route = useRoute()
@@ -19,9 +20,16 @@ const initialValues = model?.fields.reduce<Record<string, string | boolean>>((re
 function submitForm(values: Record<string, unknown>) {
   if (!model) return
 
+  const visibleValues = Object.fromEntries(
+    model.fields
+      .filter((field) => field.type !== 'divider' && isFieldVisible(field, model.fields, values))
+      .map((field) => [field.name, values[field.name]]),
+  )
+
   const submission = {
     modelId: model.id,
-    values: { ...values },
+    modelRevision: model.revision,
+    values: visibleValues,
     submittedAt: new Date().toISOString(),
   }
 
@@ -29,6 +37,10 @@ function submitForm(values: Record<string, unknown>) {
   window.localStorage.setItem('form-studio-last-submission', JSON.stringify(submission))
   submitted.value = true
   window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function visibleFields(values: FormValues) {
+  return model?.fields.filter((field) => isFieldVisible(field, model.fields, values)) ?? []
 }
 </script>
 
@@ -73,8 +85,8 @@ function submitForm(values: Record<string, unknown>) {
             <button @click="submitted = false">×</button>
           </div>
 
-          <VeeForm v-slot="{ meta }" :initial-values="initialValues" @submit="submitForm">
-            <RuntimeFieldRenderer v-for="field in model.fields" :key="field.id" :field="field" />
+          <VeeForm v-slot="{ meta, values }" :initial-values="initialValues" @submit="submitForm">
+            <RuntimeFieldRenderer v-for="field in visibleFields(values)" :key="field.id" :field="field" />
 
             <div class="runtime-actions">
               <span>{{ meta.valid ? '表单内容校验通过后即可提交' : '请检查表单中的错误信息' }}</span>
