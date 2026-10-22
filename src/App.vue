@@ -77,8 +77,13 @@ function saveModel() {
   window.setTimeout(() => (saved.value = false), 1800)
 }
 
-function createFormPage() {
+function previewFormPage() {
   store.saveModel()
+  router.push({ name: 'form-preview', query: { mode: 'preview' } })
+}
+
+function publishFormPage() {
+  store.publishModel()
   router.push({ name: 'form-preview' })
 }
 </script>
@@ -106,7 +111,7 @@ function createFormPage() {
       </div>
 
       <div class="topbar-actions">
-        <button class="icon-button" aria-label="预览" title="预览" @click="createFormPage">
+        <button class="icon-button" aria-label="预览草稿" title="预览草稿" @click="previewFormPage">
           <svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg>
         </button>
         <button class="secondary-button" @click="store.resetModel">重置</button>
@@ -114,8 +119,8 @@ function createFormPage() {
           <svg viewBox="0 0 24 24"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3M8 21v-8h8v8"/></svg>
           {{ saved ? '已保存' : '保存模型' }}
         </button>
-        <button class="create-form-button" @click="createFormPage">
-          创建表单
+        <button class="create-form-button" @click="publishFormPage">
+          {{ store.publishedRevision ? `发布新版本 V${store.publishedRevision + 1}` : '发布表单' }}
           <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </button>
       </div>

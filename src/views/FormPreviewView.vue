@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Form as VeeForm } from 'vee-validate'
-import { useRouter } from 'vue-router'
-import { readSavedFormModel } from '@/stores/formBuilder'
+import { useRoute, useRouter } from 'vue-router'
+import { readPublishedFormModel, readSavedFormModel } from '@/stores/formBuilder'
 import RuntimeFieldRenderer from '@/components/form-runtime/RuntimeFieldRenderer.vue'
 
 const router = useRouter()
-const model = readSavedFormModel()
+const route = useRoute()
+const isDraftPreview = route.query.mode === 'preview'
+const model = isDraftPreview ? readSavedFormModel() : readPublishedFormModel()
 const submitted = ref(false)
 
 const initialValues = model?.fields.reduce<Record<string, string | boolean>>((result, field) => {
@@ -41,14 +43,16 @@ function submitForm(values: Record<string, unknown>) {
         <span class="generated-brand-mark"><i></i><i></i><i></i></span>
         <strong>Form Studio</strong>
       </div>
-      <span class="preview-pill">已创建的表单</span>
+      <span class="preview-pill" :class="{ draft: isDraftPreview }">
+        {{ isDraftPreview ? '草稿预览' : `已发布 · V${model?.revision ?? 0}` }}
+      </span>
     </header>
 
     <main class="generated-main">
       <div v-if="!model" class="missing-model">
         <div>!</div>
-        <h1>还没有保存表单模型</h1>
-        <p>请返回编辑器完成编排，然后点击“创建表单”。</p>
+        <h1>{{ isDraftPreview ? '还没有保存表单模型' : '还没有发布表单' }}</h1>
+        <p>{{ isDraftPreview ? '请返回编辑器完成编排并保存模型。' : '请返回编辑器完成编排，然后点击“发布表单”。' }}</p>
         <button @click="router.push('/')">返回编辑器</button>
       </div>
 
@@ -57,7 +61,9 @@ function submitForm(values: Record<string, unknown>) {
           <span class="generated-kicker">FORM / {{ model.fields.length }} FIELDS</span>
           <h1>{{ model.title }}</h1>
           <p>{{ model.description }}</p>
-          <div class="model-info"><span></span>此页面根据已保存的模型动态生成</div>
+          <div class="model-info">
+            <span></span>{{ isDraftPreview ? '此页面根据当前草稿动态生成' : `此页面根据已发布模型 V${model.revision} 动态生成` }}
+          </div>
         </section>
 
         <section class="generated-card">

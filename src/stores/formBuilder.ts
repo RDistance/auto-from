@@ -39,14 +39,18 @@ export interface FormField {
 
 export interface SavedFormModel {
   version: 1
+  revision: number
+  status: 'draft' | 'published'
   id: string
   title: string
   description: string
   fields: FormField[]
   savedAt: string
+  publishedAt: string | null
 }
 
 export const FORM_MODEL_STORAGE_KEY = 'form-studio-model'
+export const PUBLISHED_FORM_MODEL_STORAGE_KEY = 'form-studio-published-model'
 
 type CatalogPayload = { kind: 'catalog'; definition: CatalogField }
 type FieldPayload = { kind: 'field'; field: FormField }
@@ -122,11 +126,11 @@ function cloneFields(fields: FormField[]) {
   }))
 }
 
-export function readSavedFormModel(): SavedFormModel | null {
+function readFormModel(storageKey: string, fallbackStatus: SavedFormModel['status']): SavedFormModel | null {
   if (typeof window === 'undefined') return null
 
   try {
-    const raw = window.localStorage.getItem(FORM_MODEL_STORAGE_KEY)
+    const raw = window.localStorage.getItem(storageKey)
     if (!raw) return null
     const parsed = JSON.parse(raw) as SavedFormModel | FormField[]
 
@@ -134,24 +138,43 @@ export function readSavedFormModel(): SavedFormModel | null {
     if (Array.isArray(parsed)) {
       return {
         version: 1,
+        revision: 0,
+        status: fallbackStatus,
         id: 'user-information-form',
         title: '用户信息采集表',
         description: '请填写以下信息，带 * 的项目为必填项',
         fields: cloneFields(parsed),
         savedAt: new Date().toISOString(),
+        publishedAt: null,
       }
     }
 
     if (!parsed || !Array.isArray(parsed.fields)) return null
-    return { ...parsed, fields: cloneFields(parsed.fields) }
+    return {
+      ...parsed,
+      revision: parsed.revision ?? 0,
+      status: parsed.status ?? fallbackStatus,
+      publishedAt: parsed.publishedAt ?? null,
+      fields: cloneFields(parsed.fields),
+    }
   } catch {
     return null
   }
 }
 
+export function readSavedFormModel(): SavedFormModel | null {
+  return readFormModel(FORM_MODEL_STORAGE_KEY, 'draft')
+}
+
+export function readPublishedFormModel(): SavedFormModel | null {
+  return readFormModel(PUBLISHED_FORM_MODEL_STORAGE_KEY, 'published')
+}
+
 export const useFormBuilderStore = defineStore('formBuilder', () => {
   const storedModel = readSavedFormModel()
+  const storedPublishedModel = readPublishedFormModel()
   const fields = ref<FormField[]>(storedModel ? cloneFields(storedModel.fields) : freshInitialFields())
+  const publishedRevision = ref(storedPublishedModel?.revision ?? 0)
   const selectedId = ref<string | null>(fields.value[0]?.id ?? null)
   const selectedField = computed(() => fields.value.find((field) => field.id === selectedId.value) ?? null)
 
@@ -203,18 +226,43 @@ export const useFormBuilderStore = defineStore('formBuilder', () => {
   }
 
   function saveModel(): SavedFormModel {
+    const publishedModel = readPublishedFormModel()
     const model: SavedFormModel = {
       version: 1,
+      revision: publishedModel?.revision ?? 0,
+      status: 'draft',
       id: 'user-information-form',
       title: '用户信息采集表',
       description: '请填写以下信息，带 * 的项目为必填项',
       fields: cloneFields(fields.value),
       savedAt: new Date().toISOString(),
+      publishedAt: publishedModel?.publishedAt ?? null,
     }
 
     window.localStorage.setItem(FORM_MODEL_STORAGE_KEY, JSON.stringify(model))
     return model
   }
 
-  return { fields, selectedId, selectedField, select, clearSelection, handleDrop, duplicate, remove, resetModel, saveModel }
+  function publishModel(): SavedFormModel {
+    const previousPublishedModel = readPublishedFormModel()
+    const now = new Date().toISOString()
+    const model: SavedFormModel = {
+      version: 1,
+      revision: (previousPublishedModel?.revision ?? 0) + 1,
+      status: 'published',
+      id: 'user-information-form',
+      title: '用户信息采集表',
+      description: '请填写以下信息，带 * 的项目为必填项',
+      fields: cloneFields(fields.value),
+      savedAt: now,
+      publishedAt: now,
+    }
+
+    window.localStorage.setItem(PUBLISHED_FORM_MODEL_STORAGE_KEY, JSON.stringify(model))
+    publishedRevision.value = model.revision
+    saveModel()
+    return model
+  }
+
+  return { fields, selectedId, selectedField, publishedRevision, select, clearSelection, handleDrop, duplicate, remove, resetModel, saveModel, publishModel }
 })

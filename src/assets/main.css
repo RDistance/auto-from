@@ -203,6 +203,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .generated-brand-mark i:nth-child(2) { height: 8px; margin-top: 5px; }
 .generated-brand-mark i:nth-child(3) { height: 11px; margin-top: 2px; }
 .preview-pill { justify-self: end; padding: 5px 10px; border-radius: 20px; background: #e9f8ef; color: #067647; font-size: 11px; font-weight: 700; }
+.preview-pill.draft { background: #fff4e5; color: #b54708; }
 .generated-main { width: min(1080px, calc(100% - 64px)); margin: 0 auto; padding: 58px 0 80px; }
 .generated-layout { display: grid; grid-template-columns: 285px minmax(0, 1fr); gap: 50px; align-items: start; }
 .generated-intro { position: sticky; top: 35px; padding-top: 17px; }
