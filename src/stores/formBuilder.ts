@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { DropResult } from 'vue3-smooth-dnd'
 
-export type FieldType = 'text' | 'textarea' | 'number' | 'checkbox' | 'select' | 'date' | 'radio' | 'divider'
+export type FieldType = 'text' | 'textarea' | 'richtext' | 'number' | 'checkbox' | 'select' | 'date' | 'radio' | 'divider'
 
 export interface CatalogField {
   type: FieldType
@@ -42,6 +42,7 @@ type FieldPayload = { kind: 'field'; field: FormField }
 export const fieldCatalog: CatalogField[] = [
   { type: 'text', label: '单行文本', description: '姓名、标题、邮箱等短文本', placeholder: '请输入内容' },
   { type: 'textarea', label: '多行文本', description: '描述、备注等长文本内容', placeholder: '请输入详细内容' },
+  { type: 'richtext', label: '富文本', description: '支持标题、列表和文字样式', placeholder: '请输入富文本内容' },
   { type: 'number', label: '数字', description: '数量、金额或其他数值', placeholder: '请输入数字' },
   { type: 'checkbox', label: '复选框', description: '用于确认或开关类选项', placeholder: '我已阅读并同意' },
   { type: 'select', label: '下拉选择', description: '从预设选项中选择一项', placeholder: '请选择一个选项', options: ['选项一', '选项二', '选项三'] },

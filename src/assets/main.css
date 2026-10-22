@@ -96,6 +96,10 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .field-body > input, .field-body > textarea, .field-body > select, .property-control input, .property-control textarea { width: 100%; border: 1px solid #d7dce3; border-radius: 7px; color: #667085; background: #fff; outline: none; }
 .field-body > input, .field-body > select { height: 41px; padding: 0 12px; }
 .field-body > textarea { padding: 10px 12px; resize: none; }
+.richtext-canvas-preview { overflow: hidden; border: 1px solid #d7dce3; border-radius: 7px; background: white; }
+.richtext-preview-toolbar { height: 32px; display: flex; align-items: center; gap: 13px; padding: 0 10px; border-bottom: 1px solid #e9ebef; background: #f9fafb; color: #667085; font-size: 10px; }
+.richtext-preview-toolbar em { font-family: Georgia, serif; }
+.richtext-canvas-preview > p { min-height: 54px; margin: 0; padding: 11px 12px; color: #98a2b3; font-size: 12px; }
 .canvas-field.selected .field-body > input, .canvas-field.selected .field-body > textarea, .canvas-field.selected .field-body > select { border-color: #b7b7ec; }
 .field-body small { display: block; margin-top: 6px; color: #98a2b3; font-size: 11px; }
 .choice-control, .radio-list label { display: flex; align-items: center; gap: 9px; color: #475467; }
@@ -214,6 +218,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .runtime-field > input:focus, .runtime-field > textarea:focus, .runtime-field > select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,91,214,.1); }
 .runtime-field > input:disabled, .runtime-field > textarea:disabled, .runtime-field > select:disabled { background: #f2f4f7; color: #98a2b3; }
 .runtime-field small { display: block; margin-top: 7px; color: #98a2b3; font-size: 10.5px; }
+.runtime-field small.runtime-error { color: #d92d20; }
 .runtime-check, .runtime-radio-list label { display: flex; align-items: center; gap: 9px; color: #475467; font-size: 12.5px; }
 .runtime-check input, .runtime-radio-list input { width: 17px; height: 17px; accent-color: var(--accent); }
 .runtime-radio-list { min-height: 42px; display: flex; align-items: center; gap: 24px; }

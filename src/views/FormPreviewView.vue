@@ -2,11 +2,13 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { readSavedFormModel } from '@/stores/formBuilder'
+import RichTextInput from '@/components/RichTextInput.vue'
 
 const router = useRouter()
 const model = readSavedFormModel()
 const submitted = ref(false)
 const values = reactive<Record<string, string | number | boolean>>({})
+const fieldErrors = reactive<Record<string, string>>({})
 
 if (model) {
   for (const field of model.fields) {
@@ -14,8 +16,25 @@ if (model) {
   }
 }
 
+function isRichTextEmpty(value: string) {
+  return value.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim().length === 0
+}
+
+function updateRichText(name: string, value: string) {
+  values[name] = value
+  delete fieldErrors[name]
+}
+
 function submitForm() {
   if (!model) return
+
+  for (const key of Object.keys(fieldErrors)) delete fieldErrors[key]
+  for (const field of model.fields) {
+    if (field.type === 'richtext' && field.required && isRichTextEmpty(String(values[field.name] ?? ''))) {
+      fieldErrors[field.name] = `请填写${field.label}`
+    }
+  }
+  if (Object.keys(fieldErrors).length > 0) return
   window.localStorage.setItem(
     'form-studio-last-submission',
     JSON.stringify({ modelId: model.id, values: { ...values }, submittedAt: new Date().toISOString() }),
@@ -88,6 +107,14 @@ function submitForm() {
                   rows="4"
                 ></textarea>
 
+                <RichTextInput
+                  v-else-if="field.type === 'richtext'"
+                  :model-value="String(values[field.name] ?? '')"
+                  :placeholder="field.placeholder"
+                  :disabled="field.disabled"
+                  @update:model-value="updateRichText(field.name, $event)"
+                />
+
                 <input
                   v-else-if="field.type === 'text' || field.type === 'number' || field.type === 'date'"
                   :id="field.id"
@@ -134,7 +161,8 @@ function submitForm() {
                   </label>
                 </div>
 
-                <small v-if="field.helpText">{{ field.helpText }}</small>
+                <small v-if="fieldErrors[field.name]" class="runtime-error">{{ fieldErrors[field.name] }}</small>
+                <small v-else-if="field.helpText">{{ field.helpText }}</small>
               </div>
             </template>
 

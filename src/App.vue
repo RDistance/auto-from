@@ -15,6 +15,7 @@ const selectedField = computed(() => store.selectedField)
 const iconPaths: Record<string, string> = {
   text: '<path d="M5 5h14M12 5v14M8 19h8"/>',
   textarea: '<path d="M5 5h14M12 5v11M8 16h8"/><path d="m16 20 4-4"/>',
+  richtext: '<path d="M4 5h16M8 5v14M5 19h6"/><path d="M14 11h6M14 15h5M14 19h4"/>',
   number: '<path d="M10 3 8 21M16 3l-2 18M4 9h16M3 15h16"/>',
   checkbox: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>',
   select: '<path d="M5 7h14M5 12h9M5 17h6"/><path d="m17 15 3 3 3-3"/>',
@@ -154,6 +155,12 @@ function createFormPage() {
                     rows="3"
                     readonly
                   ></textarea>
+                  <div v-else-if="field.type === 'richtext'" class="richtext-canvas-preview">
+                    <div class="richtext-preview-toolbar">
+                      <strong>B</strong><em>I</em><span>H</span><span>• List</span><span>“</span>
+                    </div>
+                    <p>{{ field.placeholder || '请输入富文本内容' }}</p>
+                  </div>
                   <input
                     v-else-if="field.type === 'text' || field.type === 'number' || field.type === 'date'"
                     :type="field.type === 'text' ? 'text' : field.type"
