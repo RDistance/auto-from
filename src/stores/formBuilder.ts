@@ -12,6 +12,17 @@ export interface CatalogField {
   options?: string[]
 }
 
+export interface FieldValidation {
+  format: 'none' | 'email' | 'phone'
+  requiredMessage: string
+  minLength: number | null
+  maxLength: number | null
+  min: number | null
+  max: number | null
+  pattern: string
+  patternMessage: string
+}
+
 export interface FormField {
   id: string
   type: FieldType
@@ -23,6 +34,7 @@ export interface FormField {
   required: boolean
   disabled: boolean
   options: string[]
+  validation: FieldValidation
 }
 
 export interface SavedFormModel {
@@ -55,14 +67,17 @@ const initialFields: Omit<FormField, 'id'>[] = [
   {
     type: 'text', typeLabel: '单行文本', label: '姓名', name: 'fullName', placeholder: '请输入您的姓名',
     helpText: '', required: true, disabled: false, options: [],
+    validation: { format: 'none', requiredMessage: '请输入姓名', minLength: 2, maxLength: 30, min: null, max: null, pattern: '', patternMessage: '' },
   },
   {
     type: 'text', typeLabel: '单行文本', label: '电子邮箱', name: 'email', placeholder: 'name@example.com',
     helpText: '我们不会向第三方公开您的邮箱', required: true, disabled: false, options: [],
+    validation: { format: 'email', requiredMessage: '请输入电子邮箱', minLength: null, maxLength: 100, min: null, max: null, pattern: '', patternMessage: '' },
   },
   {
     type: 'select', typeLabel: '下拉选择', label: '所在地区', name: 'region', placeholder: '请选择所在地区',
     helpText: '', required: false, disabled: false, options: ['华东地区', '华南地区', '华北地区', '其他'],
+    validation: { format: 'none', requiredMessage: '', minLength: null, maxLength: null, min: null, max: null, pattern: '', patternMessage: '' },
   },
 ]
 
@@ -82,15 +97,29 @@ function makeField(definition: CatalogField): FormField {
     required: false,
     disabled: false,
     options: [...(definition.options ?? [])],
+    validation: { format: 'none', requiredMessage: '', minLength: null, maxLength: null, min: null, max: null, pattern: '', patternMessage: '' },
   }
 }
 
 function freshInitialFields(): FormField[] {
-  return initialFields.map((field) => ({ ...field, id: makeId(), options: [...field.options] }))
+  return initialFields.map((field) => ({ ...field, id: makeId(), options: [...field.options], validation: { ...field.validation } }))
 }
 
 function cloneFields(fields: FormField[]) {
-  return fields.map((field) => ({ ...field, options: [...field.options] }))
+  return fields.map((field) => ({
+    ...field,
+    options: [...(field.options ?? [])],
+    validation: Object.assign({
+      format: 'none',
+      requiredMessage: '',
+      minLength: null,
+      maxLength: null,
+      min: null,
+      max: null,
+      pattern: '',
+      patternMessage: '',
+    } satisfies FieldValidation, field.validation ?? {}),
+  }))
 }
 
 export function readSavedFormModel(): SavedFormModel | null {
@@ -156,7 +185,7 @@ export const useFormBuilderStore = defineStore('formBuilder', () => {
     const index = fields.value.findIndex((field) => field.id === id)
     if (index < 0) return
     const source = fields.value[index]!
-    const copy = { ...source, id: makeId(), label: `${source.label} 副本`, name: `${source.name}_copy`, options: [...source.options] }
+    const copy = { ...source, id: makeId(), label: `${source.label} 副本`, name: `${source.name}_copy`, options: [...source.options], validation: { ...source.validation } }
     fields.value.splice(index + 1, 0, copy)
     selectedId.value = copy.id
   }

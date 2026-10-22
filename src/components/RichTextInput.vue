@@ -119,9 +119,11 @@ onBeforeUnmount(() => editor.value?.destroy())
 .richtext-toolbar button:hover:not(:disabled) { background: #ececfb; color: #4747bd; }
 .richtext-toolbar button.active { background: #e3e3fa; color: #4747bd; }
 .richtext-toolbar button:disabled { opacity: .35; cursor: not-allowed; }
+.richtext-toolbar strong { font-weight: 700; }
 :deep(.richtext-prosemirror) { min-height: 150px; padding: 14px 15px; color: #344054; font-size: 13px; line-height: 1.7; outline: none; }
 :deep(.richtext-prosemirror p) { margin: 0 0 8px; }
 :deep(.richtext-prosemirror p:last-child) { margin-bottom: 0; }
+:deep(.richtext-prosemirror strong) { font-weight: 700; }
 :deep(.richtext-prosemirror h2) { margin: 4px 0 10px; font-size: 19px; line-height: 1.35; }
 :deep(.richtext-prosemirror ul), :deep(.richtext-prosemirror ol) { padding-left: 23px; }
 :deep(.richtext-prosemirror blockquote) { margin: 10px 0; padding: 5px 12px; border-left: 3px solid #5b5bd6; background: #f7f7fd; color: #667085; }

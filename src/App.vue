@@ -28,6 +28,23 @@ function iconFor(type: string) {
   return iconPaths[type] ?? iconPaths.text
 }
 
+function supportsLengthValidation(type: string) {
+  return ['text', 'textarea', 'richtext'].includes(type)
+}
+
+function supportsPatternValidation(type: string) {
+  return ['text', 'textarea', 'richtext'].includes(type)
+}
+
+function updateValidationNumber(
+  key: 'minLength' | 'maxLength' | 'min' | 'max',
+  event: Event,
+) {
+  if (!selectedField.value) return
+  const rawValue = (event.target as HTMLInputElement).value
+  selectedField.value.validation[key] = rawValue === '' ? null : Number(rawValue)
+}
+
 function selectField(id: string) {
   store.select(id)
   activeTab.value = 'properties'
@@ -299,6 +316,61 @@ function createFormPage() {
                 <div><strong>禁用字段</strong><span>仅展示，不允许用户修改</span></div>
                 <input v-model="selectedField.disabled" type="checkbox" /><i></i>
               </label>
+            </div>
+
+            <div v-if="selectedField.type !== 'divider'" class="property-section validation-settings">
+              <h3>校验规则</h3>
+
+              <label class="property-control">
+                <span>必填错误提示</span>
+                <input
+                  v-model="selectedField.validation.requiredMessage"
+                  type="text"
+                  :placeholder="`请填写${selectedField.label}`"
+                />
+              </label>
+
+              <label v-if="selectedField.type === 'text'" class="property-control">
+                <span>内容格式</span>
+                <select v-model="selectedField.validation.format">
+                  <option value="none">普通文本</option>
+                  <option value="email">邮箱地址</option>
+                  <option value="phone">中国大陆手机号</option>
+                </select>
+              </label>
+
+              <div v-if="supportsLengthValidation(selectedField.type)" class="validation-grid">
+                <label class="property-control">
+                  <span>最小长度</span>
+                  <input :value="selectedField.validation.minLength ?? ''" type="number" min="0" placeholder="不限制" @input="updateValidationNumber('minLength', $event)" />
+                </label>
+                <label class="property-control">
+                  <span>最大长度</span>
+                  <input :value="selectedField.validation.maxLength ?? ''" type="number" min="0" placeholder="不限制" @input="updateValidationNumber('maxLength', $event)" />
+                </label>
+              </div>
+
+              <div v-if="selectedField.type === 'number'" class="validation-grid">
+                <label class="property-control">
+                  <span>最小值</span>
+                  <input :value="selectedField.validation.min ?? ''" type="number" placeholder="不限制" @input="updateValidationNumber('min', $event)" />
+                </label>
+                <label class="property-control">
+                  <span>最大值</span>
+                  <input :value="selectedField.validation.max ?? ''" type="number" placeholder="不限制" @input="updateValidationNumber('max', $event)" />
+                </label>
+              </div>
+
+              <template v-if="supportsPatternValidation(selectedField.type)">
+                <label class="property-control">
+                  <span>自定义正则 <i>无需填写 / /</i></span>
+                  <input v-model="selectedField.validation.pattern" type="text" placeholder="例如：^[A-Za-z]+$" />
+                </label>
+                <label v-if="selectedField.validation.pattern" class="property-control">
+                  <span>正则错误提示</span>
+                  <input v-model="selectedField.validation.patternMessage" type="text" placeholder="字段格式不正确" />
+                </label>
+              </template>
             </div>
 
             <button class="delete-field-button" @click="store.remove(selectedField.id)">

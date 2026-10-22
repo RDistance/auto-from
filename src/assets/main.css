@@ -159,9 +159,12 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .property-control:last-child { margin-bottom: 0; }
 .property-control > span { display: flex; justify-content: space-between; margin-bottom: 7px; color: #475467; font-size: 11.5px; font-weight: 600; }
 .property-control i { color: #98a2b3; font-size: 9.5px; font-style: normal; font-weight: 400; }
-.property-control input { height: 39px; padding: 0 10px; color: #344054; }
+.property-control input, .property-control select { height: 39px; padding: 0 10px; color: #344054; }
+.property-control select { width: 100%; border: 1px solid #d7dce3; border-radius: 7px; background: white; outline: none; }
 .property-control textarea { padding: 9px 10px; color: #344054; resize: vertical; }
-.property-control input:focus, .property-control textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91, 91, 214, .1); }
+.property-control input:focus, .property-control textarea:focus, .property-control select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91, 91, 214, .1); }
+.validation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.validation-settings { padding-bottom: 6px; }
 .switch-list { padding-bottom: 12px; }
 .switch-row { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 9px 0 12px; cursor: pointer; }
 .switch-row > div { display: flex; flex-direction: column; }
@@ -216,6 +219,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .runtime-field > input, .runtime-field > select { height: 44px; padding: 0 13px; }
 .runtime-field > textarea { padding: 11px 13px; resize: vertical; }
 .runtime-field > input:focus, .runtime-field > textarea:focus, .runtime-field > select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,91,214,.1); }
+.runtime-field.has-error > input, .runtime-field.has-error > textarea, .runtime-field.has-error > select, .runtime-field.has-error .richtext-editor { border-color: #f04438; }
 .runtime-field > input:disabled, .runtime-field > textarea:disabled, .runtime-field > select:disabled { background: #f2f4f7; color: #98a2b3; }
 .runtime-field small { display: block; margin-top: 7px; color: #98a2b3; font-size: 10.5px; }
 .runtime-field small.runtime-error { color: #d92d20; }
